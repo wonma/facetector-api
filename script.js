@@ -1,11 +1,14 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const cors = require('cors')
 const bcrypt = require('bcrypt')
+
 app.use(bodyParser.json())
+app.use(cors())
 
 app.get('/', (req, res) => {
-    res.send(database.users)
+    res.json(database.users)
 })
 
 app.listen(3000, () => {
@@ -41,9 +44,9 @@ const database = {
 app.post('/signin', (req, res) => {
     if (req.body.email === database.users[0].email &&
         req.body.password === database.users[0].password) {
-        res.json('Success!!')
+        res.json('Success')
     } else {
-        res.json('Fail!!')
+        res.status(400).json('Fail')
     }
 })
 
@@ -99,4 +102,3 @@ app.put('/image', (req, res) => {
 })
 
 // Storing user password
-// 미미풀이: 
