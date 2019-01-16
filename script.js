@@ -44,7 +44,7 @@ const database = {
 app.post('/signin', (req, res) => {
     if (req.body.email === database.users[0].email &&
         req.body.password === database.users[0].password) {
-        res.json('Success')
+        res.json(database.users[0])
     } else {
         res.status(400).json('Fail')
     }
@@ -52,7 +52,8 @@ app.post('/signin', (req, res) => {
 
 // register 세팅하기
 app.post('/register', (req, res) => {
-    const {name, email, password} = req.body
+    const { name, email, password } = req.body
+    const prevUsers = database.users.length
     database.users.push({
         id: '789',
         name: name,
@@ -61,7 +62,12 @@ app.post('/register', (req, res) => {
         entries: 0,
         date: new Date()    
     })
-    res.json(database.users[database.users.length - 1])
+    if (prevUsers + 1 === database.users.length ) {
+        res.json(database.users[database.users.length - 1])
+    } else {
+        res.status(400).json('Fail')
+    }
+    // res.json(database.users[database.users.length - 1])
 })
 
 // profile 세팅하기  
