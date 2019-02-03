@@ -3,6 +3,22 @@ const app = express()
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const bcrypt = require('bcrypt')
+const db = require('knex')({
+    client: 'pg',
+    connection: {
+        host: '127.0.0.1',
+        user: '',
+        password: '',
+        database: 'facetector'
+    }
+});
+
+
+
+db.select('*').from('users').then(data => {
+    console.log(data)
+})
+
 
 app.use(bodyParser.json())
 app.use(cors())
@@ -16,58 +32,80 @@ app.listen(3000, () => {
 })
 
 // Database라고 임시 가정하기
-const database = {
-    users: [
-        {
-            id: '123',
-            name: 'woshmi',
-            email: 'woshmi@gmail.com',
-            password: 'cookies',
-            entries: 0,
-            date: new Date()
-        },
-        {
-            id: '456',
-            name: 'shugoi',
-            email: 'shugoi@gmail.com',
-            password: 'lemons',
-            entries: 0,
-            date: new Date()
-        }
-    ]
-}
+// const database = {
+//     users: [
+//         {
+//             id: '123',
+//             name: 'woshmi',
+//             email: 'woshmi@gmail.com',
+//             password: 'cookies',
+//             entries: 0,
+//             date: new Date()
+//         },
+//         {
+//             id: '456',
+//             name: 'shugoi',
+//             email: 'shugoi@gmail.com',
+//             password: 'lemons',
+//             entries: 0,
+//             date: new Date()
+//         }
+//     ]
+// }
 
 // signin 세팅하기
 // 미미풀이: POST는 프론트에서 입력한 정보(request)를 '서버'가 두 손에 쥐고 데이터베이스 성에 들어가서
 //         해당 정보가 매칭되는지 확인 한 후, 맞으면 (계획된 바에 따라) '응답'을 내 놓는 것
 //         GET으로도 프론트에서 입력한 정보를 쥐고 옮길 수 있으나, 다 노출된 상태로 쥐고 감.
 app.post('/signin', (req, res) => {
-    if (req.body.email === database.users[0].email &&
-        req.body.password === database.users[0].password) {
-        res.json(database.users[0])
-    } else {
-        res.status(400).json('Fail')
-    }
+    db('login').where('email', '=', req.body.email)
+        .select('*')
+        .then(user => {
+            const isValid = bcrypt.compareSync(req.body.password, user[0].hash);
+            if(isValid){
+                db.select('*').from('users')
+                .where('email', '=', req.body.email)
+                .then(user => res.json(user[0]))
+                .catch(err => res.status(400).json('Unable to get user'))
+            } else {
+                res.status(400).json('Invalid User info')
+            }
+        })
+        .catch(err => res.status(400).json('Unable to sign in'))
 })
 
 // register 세팅하기
 app.post('/register', (req, res) => {
     const { name, email, password } = req.body
-    const prevUsers = database.users.length
-    database.users.push({
-        id: '789',
-        name: name,
-        email: email,
-        password: password,
-        entries: 0,
-        date: new Date()    
+
+    const hash = bcrypt.hashSync(password, 10)
+    
+    db.transaction(trx => {
+        trx.insert({
+            email: email,
+            hash: hash
+            }, 'email')     // error 1 - no single quotation
+            .into('login')
+            .then(loginEmail => {
+               return trx.insert({  // error 2 - no 'return' (있어야할 이유 잘 모르겠음)
+                    name: name,
+                    email: loginEmail[0],
+                    joined: new Date()
+                }, '*')
+                .into('users')
+                .then(user => {
+                    console.log(user[0])
+                    res.json(user[0])
+                })
+            })
+            .then(trx.commit)
+            .catch(trx.rollback)   // error 3 - no 'catch' but 'then'
     })
-    if (prevUsers + 1 === database.users.length ) {
-        res.json(database.users[database.users.length - 1])
-    } else {
-        res.status(400).json('Fail')
-    }
-    // res.json(database.users[database.users.length - 1])
+    .catch(err => {
+        res.status(400).json('Unable to register')
+    })
+
+
 })
 
 // profile 세팅하기  
@@ -76,16 +114,21 @@ app.post('/register', (req, res) => {
 //         읽어들이는 것 뿐이므로, GET request를 쓰되, res는 해당 유저의 정보로 함.
 
 app.get('/profile/:id', (req, res) => {
-    let isUserMatched = false
-    database.users.forEach(user => {
-        if(user.id === req.params.id) {
-            isUserMatched = true
-            res.json(user.name)
-        }
-    })
-    if(isUserMatched === false) {
-        res.json('No such user found')
-    }
+
+    const id = req.params.id
+    db('users')
+      .where({id: id})
+      .then(user => {    // 응답으로 돌아온 녀석은 array형태로 돌아옴을 잊지 말기!!!!
+          if(user.length) {
+              res.json(user[0])
+          } else {
+              res.status(400).json('No user')
+          }
+      })
+      .catch(err => {
+          res.status(400).json('Error Occurred')
+      })
+
 })
 
 // image 세팅하기
@@ -94,17 +137,16 @@ app.get('/profile/:id', (req, res) => {
 //         해당 유저의 entries 숫자를 increment하도록 하는 function접근 API임
 
 app.put('/image', (req, res) => {
-    let isUserMatched = false
-    database.users.forEach(user => {
-        if (user.id === req.body.id) {
-            isUserMatched = true
-            user.entries++
-            res.json(user.entries)
-        }
-    })
-    if (isUserMatched === false) {
-        res.json('No such user found')
-    }
+    const { id } = req.body
+    db('users')
+        .where('id', '=', id)
+        .increment('entries', 1)
+        .returning('entries')
+        .then(entries => {
+            console.log(entries[0])
+            res.json(entries[0])
+        })
+        .catch(err => res.status(400).json('Error Occurred'))
 })
 
 // Storing user password
