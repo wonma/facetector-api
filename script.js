@@ -18,14 +18,12 @@ const register = require('./controllers/register')
 const profile = require('./controllers/profile')
 const image = require('./controllers/image')
 
-
-
 db.select('*').from('users').then(data => {
     console.log(data)
 })
 
-
 app.use(bodyParser.json())
+
 app.use(cors())
 
 app.get('/', (req, res) => {
@@ -35,28 +33,6 @@ app.get('/', (req, res) => {
 app.listen(3000, () => {
     console.log('I love you')
 })
-
-// Database라고 임시 가정하기
-// const database = {
-//     users: [
-//         {
-//             id: '123',
-//             name: 'woshmi',
-//             email: 'woshmi@gmail.com',
-//             password: 'cookies',
-//             entries: 0,
-//             date: new Date()
-//         },
-//         {
-//             id: '456',
-//             name: 'shugoi',
-//             email: 'shugoi@gmail.com',
-//             password: 'lemons',
-//             entries: 0,
-//             date: new Date()
-//         }
-//     ]
-// }
 
 // signin 세팅하기
 // 미미풀이: POST는 프론트에서 입력한 정보(request)를 '서버'가 두 손에 쥐고 데이터베이스 성에 들어가서
