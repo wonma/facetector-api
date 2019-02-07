@@ -27,7 +27,7 @@ app.use(bodyParser.json())
 app.use(cors())
 
 app.get('/', (req, res) => {
-    res.json(database.users)
+    res.json('it is working yay!')
 })
 
 app.listen(3000, () => {
@@ -57,4 +57,6 @@ app.get('/profile/:id', profile.handleProfile(db))
 
 app.put('/image', image.handleImage(db))
 
-// Storing user password
+app.post('/imageurl', image.handleImageUrl)
+
+
