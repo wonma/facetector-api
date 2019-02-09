@@ -1,11 +1,15 @@
 const handleRegister = (db, bcrypt) => (req, res) =>  {
     const { name, email, password } = req.body
+    
     const hash = bcrypt.hashSync(password, 10)
     const regex = /^.{4,}$/
     // Password must contain at least one letter, at least one number, 
     // and be longer than six charaters.
     if(!name || !email || !password){
         return res.status(400).json('blank')
+    }
+    if(!regex.test(password)) {
+        return res.status(400).json('wrongpassword')
     }
     if(!regex.test(password)) {
         return res.status(400).json('wrongpassword')

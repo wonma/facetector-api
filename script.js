@@ -55,8 +55,9 @@ app.get('/profile/:id', profile.handleProfile(db))
 //         현재 접속된 유저의 아이디를 request에 실어 보내고, id가 동일 할 경우
 //         해당 유저의 entries 숫자를 increment하도록 하는 function접근 API임
 
+app.post('/imageurl', image.handleImageUrl)
+
 app.put('/image', image.handleImage(db))
 
-app.post('/imageurl', image.handleImageUrl)
 
 
