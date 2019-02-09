@@ -42,6 +42,8 @@ app.post('/signin', signin.handleSignin(db, bcrypt))
 
 // register 세팅하기
 app.post('/register', register.handleRegister(db, bcrypt))
+app.delete('/register', register.handleRegisterDel(db, bcrypt))
+
 
 // profile 세팅하기  
 // 미미풀이: 해당 사용자의 정보를 가진 (그에 따라 customized된) 메인 화면을 보여주기 위하여
