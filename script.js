@@ -30,8 +30,8 @@ app.get('/', (req, res) => {
     res.json('it is working yay!')
 })
 
-app.listen(3000, () => {
-    console.log('I love you')
+app.listen(process.env.PORT || 3000, () => {
+    console.log(`app is running on port ${process.env.PORT}`)
 })
 
 // signin 세팅하기
