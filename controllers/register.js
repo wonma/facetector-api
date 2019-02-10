@@ -31,9 +31,6 @@ const handleRegister = (db, bcrypt) => (req, res) =>  {
     if(!regex.test(password)) {
         return res.status(400).json('wrongpassword')
     }
-    if(!regex.test(password)) {
-        return res.status(400).json('wrongpassword')
-    }
 
 
     db.transaction(trx => {
