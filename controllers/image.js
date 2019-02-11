@@ -1,7 +1,7 @@
 const Clarifai = require('clarifai')
 
 const app = new Clarifai.App({
-  apiKey: process.env.CLARIFAI_KEY
+  apiKey: '644f844c53b549ebb7fb78931f0e95da'
 });
 
 
@@ -9,6 +9,7 @@ let foundFaces = ''
 
 const handleImageUrl = (req, res) =>  {
     const { input } = req.body
+    console.log(input)
 
     app.models.predict('a403429f2ddf4b49b307e318f00e528b', input)
         .then(response => {
